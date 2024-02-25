@@ -19,5 +19,5 @@ export const auth = (req: RequestWithJwt, res: Response, next: NextFunction) => 
   }
   req.user = payload;
 
-  next();
+  return next();
 };

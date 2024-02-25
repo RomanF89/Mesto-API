@@ -34,9 +34,7 @@ export const getUsers = (_req: Request, res: Response, next: NextFunction) => {
     .then((users) => {
       res.status(successStatus).send(users);
     })
-    .catch((err) => {
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 export const getUser = (req: Request, res: Response, next: NextFunction) => {
@@ -66,11 +64,9 @@ export const getAuthorizedUser = (req: RequestWithId, res: ResponseWithId, next:
         return next(new NotFoundError('User not found'));
       }
       const resUser: IUser | undefined = user?.toObject();
-      res.send(resUser);
+      return res.send(resUser);
     })
-    .catch((err) => {
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
@@ -171,9 +167,7 @@ export const login = (req: RequestWithId, res: ResponseWithId, next: NextFunctio
       res.send({ message: 'Success' })
         .end();
     })
-    .catch((err) => {
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 export const unLogin = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
@@ -187,6 +181,5 @@ export const unLogin = (req: RequestWithId, res: ResponseWithId, next: NextFunct
     httpOnly: true,
     sameSite: true,
   });
-  res.send({ message: 'Unlogin success' })
-    .end();
+  return res.send({ message: 'Unlogin success' }).end();
 };

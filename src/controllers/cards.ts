@@ -19,9 +19,7 @@ export const getCards = (_req: Request, res: Response, next: NextFunction) => {
     .then((cards) => {
       res.status(successStatus).send(cards);
     })
-    .catch((err) => {
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 export const createCard = (req: RequestWithId, res: Response, next: NextFunction) => {
