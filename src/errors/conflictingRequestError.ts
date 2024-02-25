@@ -1,8 +1,8 @@
-export class ConflictingRequestError extends Error {
+export default class ConflictingRequestError extends Error {
   statusCode: number;
-  constructor(message: string | undefined) {
+
+  constructor(message:string | undefined) {
     super(message);
     this.statusCode = 409;
   }
 }
-

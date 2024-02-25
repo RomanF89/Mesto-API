@@ -2,7 +2,7 @@ import express from 'express';
 import { errorLogger, requestLogger } from './middlewares/logger';
 import mongoose from 'mongoose';
 import routes from './routes/index'
-import { Request, Response  } from 'express';
+import { Request, Response } from 'express';
 import { serverError } from './constants/constants';
 import cookieParser from 'cookie-parser';
 
@@ -29,7 +29,7 @@ app.use(routes);
 app.use(errorLogger);
 
 
-app.use((err: IErrorHandler, req: Request, res: Response ) => {
+app.use((err: IErrorHandler, req: Request, res: Response) => {
   const { statusCode = serverError, message } = err;
   res
     .status(statusCode)
@@ -41,5 +41,5 @@ app.use((err: IErrorHandler, req: Request, res: Response ) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`)
+  console.log(`App listening on port ${PORT}`)
 })

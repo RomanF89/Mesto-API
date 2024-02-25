@@ -1,8 +1,6 @@
-import { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
-import { BadAuthError } from '../errors/badAuthError';
-import jwt from 'jsonwebtoken';
-
+import BadAuthError from '../errors/badAuthError';
 
 export interface RequestWithJwt extends Request {
   cookies: {
@@ -17,11 +15,9 @@ export const auth = (req: RequestWithJwt, res: Response, next: NextFunction) => 
   try {
     payload = jwt.verify(token, 'secret-key');
   } catch (err) {
-    next(new BadAuthError('Need authorization'));
+    return next(new BadAuthError('Need authorization'));
   }
   req.user = payload;
 
   next();
 };
-
-

@@ -1,9 +1,12 @@
-import Card from "../models/Card";
 import { NextFunction, Request, Response } from 'express';
-import { successStatus, successCreatedStatus} from "../constants/constants";
-import { BadRequestError } from "../errors/badRequestError";
-import { NotFoundError } from "../errors/notFoundError";
-import { ForbiddenError } from "../errors/forbiddenError";
+import Card from '../models/Card';
+import {
+  successStatus,
+  successCreatedStatus,
+} from '../constants/constants';
+import BadRequestError from '../errors/badRequestError';
+import NotFoundError from '../errors/notFoundError';
+import ForbiddenError from '../errors/forbiddenError';
 
 export interface RequestWithId extends Request {
   user?: {
@@ -17,7 +20,7 @@ export const getCards = (_req: Request, res: Response, next: NextFunction) => {
       res.status(successStatus).send(cards);
     })
     .catch((err) => {
-      next(err);
+      return next(err);
     });
 };
 
@@ -32,9 +35,9 @@ export const createCard = (req: RequestWithId, res: Response, next: NextFunction
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const fields = Object.keys(err.errors).join(', ');
-        next(new BadRequestError(`${fields} are not correct`));
+        return next(new BadRequestError(`${fields} are not correct`));
       }
-      next(err)
+      return next(err);
     });
 };
 
@@ -57,9 +60,9 @@ export const deleteCard = (req: RequestWithId, res: Response, next: NextFunction
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Card id is not correct'));
+        return next(new BadRequestError('Card id is not correct'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -76,9 +79,9 @@ export const likeCard = (req: RequestWithId, res: Response, next: NextFunction) 
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Card id is not correct'));
+        return next(new BadRequestError('Card id is not correct'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -95,8 +98,8 @@ export const dislikeCard = (req: RequestWithId, res: Response, next: NextFunctio
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Card id is not correct'));
+        return next(new BadRequestError('Card id is not correct'));
       }
-      next(err);
+      return next(err);
     });
 };

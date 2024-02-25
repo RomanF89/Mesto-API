@@ -1,13 +1,19 @@
 import { Router } from 'express';
-import { getCards, createCard, deleteCard, likeCard, dislikeCard  } from '../controllers/cards';
-import { celebrate, Joi } from 'celebrate';
 import validation from 'validator';
+import { celebrate, Joi } from 'celebrate';
+import {
+  getCards,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
+} from '../controllers/cards';
 
 const router = Router();
 
 router.post('', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
+    name: Joi.string().min(2).max(30).required(),
     link: Joi.string().required().custom((value, helpers) => {
       if (validation.isURL(value)) {
         return value;
@@ -21,17 +27,20 @@ router.get('/', getCards);
 
 router.delete('/:cardId', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required()}),
+    cardId: Joi.string().hex().required(),
+  }),
 }), deleteCard);
 
 router.put('/:cardId/likes', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required()}),
+    cardId: Joi.string().hex().required(),
+  }),
 }), likeCard);
 
 router.delete('/:cardId/likes', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required()}),
+    cardId: Joi.string().hex().required(),
+  }),
 }), dislikeCard);
 
 export default router;

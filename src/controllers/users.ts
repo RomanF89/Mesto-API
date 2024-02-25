@@ -1,13 +1,16 @@
-import User from '../models/User';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { NextFunction, Request, Response } from 'express';
+import User from '../models/User';
 import { RequestWithId } from './cards';
-import { successStatus, successCreatedStatus} from "../constants/constants";
-import { BadRequestError } from "../errors/badRequestError";
-import { NotFoundError } from "../errors/notFoundError";
-import { ConflictingRequestError } from '../errors/conflictingRequestError';
-import { BadAuthError } from '../errors/badAuthError';
+import {
+  successStatus,
+  successCreatedStatus,
+} from '../constants/constants';
+import BadRequestError from '../errors/badRequestError';
+import NotFoundError from '../errors/notFoundError';
+import ConflictingRequestError from '../errors/conflictingRequestError';
+import BadAuthError from '../errors/badAuthError';
 
 export interface IUser {
   toObject: any;
@@ -19,20 +22,20 @@ export interface IUser {
 }
 
 export interface IUserr {
-  _id : string,
+  _id: string,
 }
 
 export interface ResponseWithId extends Response {
-    _id?: string
+  _id?: string
 }
 
- export const getUsers = (_req: Request, res: Response, next: NextFunction) => {
+export const getUsers = (_req: Request, res: Response, next: NextFunction) => {
   User.find({})
     .then((users) => {
       res.status(successStatus).send(users);
     })
     .catch((err) => {
-      next(err);
+      return next(err);
     });
 };
 
@@ -47,10 +50,10 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
       return res.status(successStatus).send(user);
     })
     .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        next(new BadRequestError('Id is not correct'));
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Id is not correct'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -60,14 +63,13 @@ export const getAuthorizedUser = (req: RequestWithId, res: ResponseWithId, next:
   return User.findById(authorizedUser)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('User not found'));
+        return next(new NotFoundError('User not found'));
       }
       const resUser: IUser | undefined = user?.toObject();
-      delete resUser?.password;
       res.send(resUser);
     })
     .catch((err) => {
-      next(err);
+      return next(err);
     });
 };
 
@@ -96,12 +98,12 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const fields = Object.keys(err.errors).join(', ');
-        next(new BadRequestError(`${fields} are not correct`));
+        return next(new BadRequestError(`${fields} are not correct`));
       }
       if (err.code === 11000) {
-        next(new ConflictingRequestError('This email already exists'));
+        return next(new ConflictingRequestError('This email already exists'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -119,86 +121,72 @@ export const upadateProfile = (req: RequestWithId, res: Response, next: NextFunc
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const fields = Object.keys(err.errors).join(', ');
-        next(new BadRequestError(`${fields} are not correct`));
+        return next(new BadRequestError(`${fields} are not correct`));
       }
-      next(err);
+      return next(err);
     });
-  };
+};
 
-  export const updateAvatar = (req: RequestWithId, res: Response, next: NextFunction) => {
-    const userId = req.user && req?.user._id;
-    const userAvatar = req.body.avatar;
+export const updateAvatar = (req: RequestWithId, res: Response, next: NextFunction) => {
+  const userId = req.user && req?.user._id;
+  const userAvatar = req.body.avatar;
 
-    return User.findByIdAndUpdate(userId, { avatar: userAvatar }, {
-      new: true, runValidators: true,
+  return User.findByIdAndUpdate(userId, { avatar: userAvatar }, {
+    new: true, runValidators: true,
+  })
+    .then((userData) => {
+      res.status(successStatus).send(userData);
     })
-      .then((userData) => {
-        res.status(successStatus).send(userData);
-      })
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          const fields = Object.keys(err.errors).join(', ');
-          next(new BadRequestError(`${fields} are not correct`));
-        }
-        next(err);
-      });
-    };
-
-   export const login = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
-      const { email, password } = req.body;
-      return User.findOne({ email }).select('+password')
-        .then((user) => {
-          if (!user) {
-            throw new BadAuthError('email or password are incorrect');
-          }
-          return bcrypt.compare(password, user.password)
-            .then((matched) => {
-              if (!matched) {
-                return next(new BadAuthError('email or password are incorrect'));
-              }
-              return user;
-            });
-        })
-        .then((user) => {
-          const token = jwt.sign({ _id: user?._id }, 'secret-key');
-          res.cookie('jwt', token, {
-            maxAge: 3600000 * 24 * 7,
-            httpOnly: true,
-            sameSite: true,
-          });
-          res.send({ message: 'Success' })
-            .end();
-        })
-        .catch((err) => {
-          next(err);
-        });
-    };
-
-    export const unLogin = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
-      const userId = req.user?._id;
-      if (!userId) {
-        next(new BadRequestError('user not found'));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        const fields = Object.keys(err.errors).join(', ');
+        return next(new BadRequestError(`${fields} are not correct`));
       }
-      return User.findOne({ userId }).select('+password')
-        .then((user) => {
-          if (!user) {
-            return next(new BadAuthError('user is incorrect'));
+      return next(err);
+    });
+};
+
+export const login = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
+  const { email, password } = req.body;
+  return User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new BadAuthError('email or password are incorrect');
+      }
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return next(new BadAuthError('email or password are incorrect'));
           }
           return user;
-        })
-        .then((user) => {
-          const token = jwt.sign({ _id: user?._id }, 'secret-key');
-          res.cookie('jwt', token, {
-            maxAge: 0,
-            httpOnly: true,
-            sameSite: true,
-          });
-          res.send({ message: 'Unlogin success' })
-            .end();
-        })
-        .catch((err) => {
-          next(err);
         });
-    };
+    })
+    .then((user) => {
+      const token = jwt.sign({ _id: user?._id }, 'secret-key');
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      });
+      res.send({ message: 'Success' })
+        .end();
+    })
+    .catch((err) => {
+      return next(err);
+    });
+};
 
-
+export const unLogin = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
+  const userId = req.user?._id;
+  if (!userId) {
+    return next(new BadRequestError('user not found'));
+  }
+  const token = jwt.sign({ userId }, 'secret-key');
+  res.cookie('jwt', token, {
+    maxAge: 0,
+    httpOnly: true,
+    sameSite: true,
+  });
+  res.send({ message: 'Unlogin success' })
+    .end();
+};

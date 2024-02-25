@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { urlRegex } from '../validation/regex';
 import validation from 'validator';
+import urlRegex from '../validation/regex';
 
 interface User {
   name: string,

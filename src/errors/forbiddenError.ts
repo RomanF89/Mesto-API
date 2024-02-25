@@ -1,8 +1,8 @@
-export class ForbiddenError extends Error {
+export default class ForbiddenError extends Error {
   statusCode: number;
-  constructor(message: string | undefined) {
+
+  constructor(message:string | undefined) {
     super(message);
     this.statusCode = 403;
   }
 }
-

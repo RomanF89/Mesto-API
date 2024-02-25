@@ -1,13 +1,11 @@
-import { Router } from 'express';
-import { RequestHandler } from 'express';
+import { Router, RequestHandler } from 'express';
+import { celebrate, Joi } from 'celebrate';
 import usersRouter from './users';
 import cardsRouter from './cards';
 import { createUser, login, unLogin } from '../controllers/users';
 import { auth } from '../middlewares/auth';
-import { NotFoundError } from '../errors/notFoundError';
-import { celebrate, Joi } from 'celebrate';
-import { urlRegex } from '../validation/regex';
-
+import NotFoundError from '../errors/notFoundError';
+import urlRegex from '../validation/regex';
 
 const router = Router();
 
