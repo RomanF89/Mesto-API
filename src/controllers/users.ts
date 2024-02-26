@@ -170,16 +170,7 @@ export const login = (req: RequestWithId, res: ResponseWithId, next: NextFunctio
     .catch((err) => next(err));
 };
 
-export const unLogin = (req: RequestWithId, res: ResponseWithId, next: NextFunction) => {
-  const userId = req.user?._id;
-  if (!userId) {
-    return next(new BadRequestError('user not found'));
-  }
-  const token = jwt.sign({ userId }, 'secret-key');
-  res.cookie('jwt', token, {
-    maxAge: 0,
-    httpOnly: true,
-    sameSite: true,
-  });
+export const unLogin = (req: RequestWithId, res: ResponseWithId) => {
+  res.clearCookie('jwt');
   return res.send({ message: 'Unlogin success' }).end();
 };
